@@ -25,11 +25,20 @@
     (-> (get graph source-node)
         (assoc target-node distance))))
 
-(defn connect-vertices
+(defn connect-random-vertices
   [graph vertex]
   (let [added-nodes   (vec (keys graph))
         source-node   (rand-nth added-nodes)]
     (add-edge graph source-node vertex (rand-nth weights))))
+
+(defn add-all-vertices
+  [graph vertices-coll]
+  (loop [vertices vertices-coll
+         new-graph graph]
+    (if (empty? vertices)
+      new-graph
+      (recur (rest vertices) (connect-random-vertices new-graph (first vertices))))))
+
 
 (comment
 
@@ -45,13 +54,9 @@
                               (map str)
                               (map keyword))
         initial-graph       (add-node {} (first vertices-coll))
-        graph-with-vertices (mapcat #(connect-vertices initial-graph %) (rest vertices-coll))]
+        graph-with-vertices (add-all-vertices initial-graph (rest vertices-coll))]
     graph-with-vertices
     )
-
-
-  (doseq [vertex (rest vertices-coll)]
-    (connect-vertices initial-graph vertex))
 
   (for [vertex (rest '(:2 :3))]
     (connect-vertices {:1 nil} vertex))
@@ -60,7 +65,7 @@
          initial-map  {:1 nil}]
     (if (empty? vertex)
     initial-map
-    (recur (rest vertex) (connect-vertices initial-map (first vertex)))))
+    (recur (rest vertex) (connect-random-vertices initial-map (first vertex)))))
 
   (doseq [vertex (rest '(:2 :3))]
     (connect-vertices {:1 nil} vertex))
