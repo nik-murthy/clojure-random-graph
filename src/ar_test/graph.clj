@@ -25,10 +25,12 @@
     (-> (get graph source-node)
         (assoc target-node distance))))
 
-(defn connect-random-vertices
+(defn random-add-new-vertex
   [graph vertex]
-  (let [added-nodes   (vec (keys graph))
-        source-node   (rand-nth added-nodes)]
+  (let [source-node (->> graph
+                         (keys)
+                         (vec)
+                         (rand-nth))]
     (add-edge graph source-node vertex (rand-nth weights))))
 
 (defn add-all-vertices
@@ -37,7 +39,28 @@
          new-graph graph]
     (if (empty? vertices)
       new-graph
-      (recur (rest vertices) (connect-random-vertices new-graph (first vertices))))))
+      (recur (rest vertices) (random-add-new-vertex new-graph (first vertices))))))
+
+
+(defn get-random-node
+  [graph]
+  (->> (keys graph)
+       (vec)
+       (rand-nth)))
+
+(defn get-possible-target-nodes
+  [graph node]
+  (->> (keys graph)
+       (remove (set (list node)))
+       (remove (if (node graph)
+                 (node graph)
+                 (set '())))))
+
+(defn already-connected?
+  [graph target-node current-node]
+  (->> graph
+       (target-node)
+       (current-node)))
 
 
 (comment
@@ -46,35 +69,67 @@
         vertices-coll (->> (range 1 (+ num-vertices 1))
                            (map str)
                            (map keyword))
-        initial-graph (add-node {} (first vertices-coll))]
-    (map connect-vertices initial-graph (rest vertices-coll)))
-
-  (let [num-vertices 10
-        vertices-coll       (->> (range 1 (+ num-vertices 1))
-                              (map str)
-                              (map keyword))
-        initial-graph       (add-node {} (first vertices-coll))
+        initial-graph (add-node {} (first vertices-coll))
         graph-with-vertices (add-all-vertices initial-graph (rest vertices-coll))]
     graph-with-vertices
     )
 
-  (for [vertex (rest '(:2 :3))]
-    (connect-vertices {:1 nil} vertex))
 
-  (loop [vertex       '(:2 :3 :4)
-         initial-map  {:1 nil}]
+  (loop [vertex '(:2 :3 :4)
+         initial-map {:1 nil}]
     (if (empty? vertex)
-    initial-map
-    (recur (rest vertex) (connect-random-vertices initial-map (first vertex)))))
+      initial-map
+      (recur (rest vertex) (random-add-new-vertex initial-map (first vertex)))))
 
-  (doseq [vertex (rest '(:2 :3))]
-    (connect-vertices {:1 nil} vertex))
 
-  (connect-vertices {:1 nil} :2)
-  (connect-vertices {} :2)
+  (let [graph                   {:10 nil,
+                                 :4 {:6 28},
+                                 :7 nil,
+                                 :1 {:2 5, :4 45},
+                                 :8 nil,
+                                 :9 nil,
+                                 :2 {:3 32, :5 14, :9 21},
+                                 :5 {:7 17, :8 4, :10 6},
+                                 :3 nil,
+                                 :6 nil}
+        random-node             (get-random-node graph)
+        possible-target-nodes   (get-possible-target-nodes graph random-node)
+        ]
+      possible-target-nodes
+    )
 
-  (map #(connect-vertices {:1 nil} %) '(:2 :3))
 
-  (map #(connect-vertices {} %) '(:2 :3))
+  (let [graph {:10 nil,
+               :4  {:6 28},
+               :7  nil,
+               :1  {:2 5, :4 45},
+               :8  nil,
+               :9  nil,
+               :2  {:3 32, :5 14, :9 21},
+               :5  {:7 17, :8 4, :10 6},
+               :3  nil,
+               :6  nil}
+        possible-target-nodes '(:10 :4 :7 :1 :8 :6)
+        node :2]
+    (loop [nodes possible-target-nodes
+           unconnected-nodes '()]
+      (if (empty? nodes)
+        unconnected-nodes
+        (recur
+          (rest nodes)
+          (if (already-connected?
+                graph
+                (first nodes)
+                node)
+            unconnected-nodes
+            (cons (first nodes) unconnected-nodes)))
+      ))
+
+    ;(already-connected? graph :1 :2)
+
+    )
+
+
+  (remove nil '(:10 :4 :7 :1 :8 :6))
   )
 
