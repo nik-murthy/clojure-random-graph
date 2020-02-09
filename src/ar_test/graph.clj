@@ -15,10 +15,11 @@
 
 (defn add-node
   "Given a node and a graph, adds the node to it. Works for empty graph.
-  Here is an example graph -
+   Here is an example graph -
    {:1 {:2 4 :3 6}
     :2 {:3 1}
-    :3 nil } "
+    :3 nil }
+    Each node is a key in the graph and the adjacency list of the node, as a map, is the value."
   [graph node-name]
   (cond (get graph node-name) graph
         :else (assoc graph node-name nil)))
