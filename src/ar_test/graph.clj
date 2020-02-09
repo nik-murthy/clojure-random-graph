@@ -1,18 +1,21 @@
 (ns ar-test.graph)
 
+;seq for assigning weights (or distances) to edges in graph
 (def weights (vec (range 1 50)))
 
+;Using positive infinity as starting point of shortest path calculation
+(def ^:private inf Double/POSITIVE_INFINITY)
+
 (defn get-random-node
-  "Given a graph, retrieves a random node. Graph must contain
-  at least one node."
+  "Given a graph, retrieves a random node. Graph must contain at least one node."
   [graph]
   (->> (keys graph)
        (vec)
        (rand-nth)))
 
 (defn add-node
-  "Given a node and a graph, adds the node to it.
-   Works for empty graph. Here is an example graph -
+  "Given a node and a graph, adds the node to it. Works for empty graph.
+  Here is an example graph -
    {:1 {:2 4 :3 6}
     :2 {:3 1}
     :3 nil } "
@@ -51,7 +54,7 @@
 
 (defn get-possible-target-nodes
   "Given a graph and node in the graph, returns all the possible nodes that given
-  node can be connected to."
+  node can be connected to"
   [graph node]
   (->> (keys graph)
        (remove (set (list node)))
@@ -69,7 +72,7 @@
 
 (defn remove-already-connected
   "Given a graph, a node in it and possible nodes the given node can be connected to,
-  checks if the node is already connected to any of the possible nodes."
+  checks if the node is already connected to any of the possible nodes"
   [graph possible-target-nodes node]
   (loop [nodes possible-target-nodes
          unconnected-nodes '()]
@@ -87,7 +90,7 @@
 
 (defn random-add-new-edge
   "Given a graph and a node, adds an edge between given node and a random node from the
-  graph that given node is not yet connected to."
+  graph that given node is not yet connected to"
   [graph node]
   (let [possible-target-nodes (get-possible-target-nodes graph node)
         target-node (->> node
@@ -119,72 +122,77 @@
         additional-edges (- (+ num-edges 1) num-vertices)
         initial-graph (add-node {} (first vertices-coll))
         graph-with-vertices (add-all-vertices initial-graph (rest vertices-coll))]
-    (if (> num-edges num-vertices)
+    (if (>= num-edges num-vertices)
       (add-all-edges graph-with-vertices additional-edges)
-      (if (= num-edges num-vertices)
-        graph-with-vertices
-        (prn "Number of edges should be greater than or equal to number of vertices")))))
+      (prn "Number of edges should be greater than or equal to number of vertices"))))
 
-(comment
+(defn D
+  "Given a graph, a source node and a destination node, returns the list of nodes
+  which forms the shortest path between the source and destination nodes"
+  [graph source-node destination-node]
+  )
 
-  (let [num-vertices 10
-        vertices-coll (->> (range 1 (+ num-vertices 1))
-                           (map str)
-                           (map keyword))
-        initial-graph (add-node {} (first vertices-coll))
-        graph-with-vertices (add-all-vertices initial-graph (rest vertices-coll))]
-    graph-with-vertices
+  (comment
+
+    (let [num-vertices 10
+          vertices-coll (->> (range 1 (+ num-vertices 1))
+                             (map str)
+                             (map keyword))
+          initial-graph (add-node {} (first vertices-coll))
+          graph-with-vertices (add-all-vertices initial-graph (rest vertices-coll))]
+      graph-with-vertices
+      )
+
+
+    (loop [vertex '(:2 :3 :4)
+           initial-map {:1 nil}]
+      (if (empty? vertex)
+        initial-map
+        (recur (rest vertex) (random-add-new-vertex initial-map (first vertex)))))
+
+
+    (let [graph {:10 nil,
+                 :4  {:6 28},
+                 :7  nil,
+                 :1  {:2 5, :4 45},
+                 :8  nil,
+                 :9  nil,
+                 :2  {:3 32, :5 14, :9 21},
+                 :5  {:7 17, :8 4, :10 6},
+                 :3  nil,
+                 :6  nil}
+          random-node (get-random-node graph)
+          possible-target-nodes (get-possible-target-nodes graph random-node)
+          ]
+      (remove-already-connected
+        graph
+        possible-target-nodes
+        random-node))
+
+    (let [graph {:10 nil,
+                 :4  {:6 28},
+                 :7  nil,
+                 :1  {:2 5, :4 45},
+                 :8  nil,
+                 :9  nil,
+                 :2  {:3 32, :5 14, :9 21},
+                 :5  {:7 17, :8 4, :10 6},
+                 :3  nil,
+                 :6  nil}
+          node :4
+          possible-target-nodes (get-possible-target-nodes graph node)
+          target-node (->> node
+                           (remove-already-connected
+                             graph possible-target-nodes)
+                           (vec)
+                           (rand-nth))
+          new-graph (random-add-new-edge graph node)]
+      new-graph)
+
+    (let [n 5
+          e 10]
+      (random-graph n e))
+
     )
 
-
-  (loop [vertex '(:2 :3 :4)
-         initial-map {:1 nil}]
-    (if (empty? vertex)
-      initial-map
-      (recur (rest vertex) (random-add-new-vertex initial-map (first vertex)))))
-
-
-  (let [graph {:10 nil,
-               :4  {:6 28},
-               :7  nil,
-               :1  {:2 5, :4 45},
-               :8  nil,
-               :9  nil,
-               :2  {:3 32, :5 14, :9 21},
-               :5  {:7 17, :8 4, :10 6},
-               :3  nil,
-               :6  nil}
-        random-node (get-random-node graph)
-        possible-target-nodes (get-possible-target-nodes graph random-node)
-        ]
-    (remove-already-connected
-      graph
-      possible-target-nodes
-      random-node))
-
-  (let [graph {:10 nil,
-               :4  {:6 28},
-               :7  nil,
-               :1  {:2 5, :4 45},
-               :8  nil,
-               :9  nil,
-               :2  {:3 32, :5 14, :9 21},
-               :5  {:7 17, :8 4, :10 6},
-               :3  nil,
-               :6  nil}
-        node :4
-        possible-target-nodes (get-possible-target-nodes graph node)
-        target-node (->> node
-                         (remove-already-connected
-                           graph possible-target-nodes)
-                         (vec)
-                         (rand-nth))
-        new-graph (random-add-new-edge graph node)]
-    new-graph)
-
-  (let [n 5
-        e 7]
-    (random-graph n e))
-
-  )
 
