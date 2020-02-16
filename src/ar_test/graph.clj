@@ -172,10 +172,14 @@
   [graph source-node destination-node]
   (let [not-destination? (fn [[vertex _]]
                            (not= vertex destination-node))
-        all-paths (get-all-paths graph source-node)]
-    (-> (drop-while not-destination? all-paths)
-        (first)
-        (nth 2))))
+        all-paths (get-all-paths graph source-node)
+        shortest-path (-> (drop-while not-destination? all-paths)
+                          (first)
+                          (nth 2))]
+    (if (nil? shortest-path)
+      (prn "No path.")
+      shortest-path)
+    ))
 
 (comment
   (let [graph {:1 {:2 2 :5 9}
@@ -211,7 +215,7 @@
                :3 {:5 24}
                :4 nil
                :5 nil}]
-    (D graph :1 :5))
+    (D graph :4 :5))
 
   (let [graph {:1 {:2 2 :5 9}
                :2 {:3 1 :4 6 :5 3}
