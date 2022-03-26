@@ -1,4 +1,4 @@
-# ar-test
+# clojure-random-graph
 
 A Clojure library designed to ... well, that part is up to you.
 
